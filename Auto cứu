@@ -1,0 +1,46 @@
+-- ==============================================================================
+-- TÍNH NĂNG: AUTO CỨU HỘ & TELEPORT
+-- ==============================================================================
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local player = Players.LocalPlayer
+local AutoEnabled = false
+
+local function hasDeadAnim(character)
+    for _, v in ipairs(character:GetDescendants()) do
+        if string.lower(v.Name) == "deadanim" then return true end
+    end
+    return false
+end
+
+local function stepTeleport(targetPos)
+    local char = player.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    hrp.CFrame = CFrame.new(targetPos)
+end
+
+task.spawn(function()
+    while task.wait(0.2) do
+        if AutoEnabled then
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr ~= player and plr.Character then
+                    if hasDeadAnim(plr.Character) then
+                        local targetHRP = plr.Character:FindFirstChild("HumanoidRootPart")
+                        if targetHRP then
+                            stepTeleport(targetHRP.Position + Vector3.new(0, 2, 0))
+                            -- Tự kích hoạt prompt cứu
+                            for _, obj in ipairs(Workspace:GetDescendants()) do
+                                if obj:IsA("ProximityPrompt") and obj.Enabled then
+                                    pcall(function() fireproximityprompt(obj) end)
+                                end
+                            end
+                            break
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
